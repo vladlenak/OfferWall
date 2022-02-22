@@ -5,14 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
-import com.beust.klaxon.Klaxon
-import com.google.gson.Gson
-import octopus.inc.offerwall.api.model.TextResponse
-import octopus.inc.offerwall.api.model.WebViewResponse
 import octopus.inc.offerwall.databinding.ActivityMainBinding
 import octopus.inc.offerwall.viewmodel.MainViewModel
-import org.json.JSONObject
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -20,7 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel: MainViewModel by lazy {
-        ViewModelProvider(this).get(MainViewModel::class.java)
+        ViewModelProvider(this)[MainViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,34 +22,62 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel.allIds.observe(this) {
-            getObjectById(it.data[0].id)
-        }
-
-        viewModel.currentObject.observe(this) {
-            val jsonStr = it.toString()
-            Log.d(TAG, "jsonStr: $jsonStr")
-
-            if (jsonStr.contains("type=text")) {
+        viewModel.objectResponse.observe(this) {
+            if (it.type == "text") {
+                Log.d(TAG, "text")
                 binding.webView.visibility = View.GONE
+                binding.textView.visibility = View.VISIBLE
+                binding.textView.text = it.message
+            } else if (it.type == "webview") {
+                Log.d(TAG, "webview")
+                it?.url?.let{ url ->
+                    binding.webView.loadUrl(url)
+                    binding.textView.visibility = View.GONE
+                    binding.webView.visibility = View.VISIBLE
 
-                binding.textView.text = ""
-            } else if (jsonStr.contains("type=webview")) {
-//                val webViewResponse = Gson().fromJson(jsonStr, WebViewResponse::class.java)
-//                val result = Klaxon().parse<WebViewResponse>("""{"id":2,"type":"webview","url": "https://cp.appotrack.space"}""")
-                val result = Klaxon().parse<WebViewResponse>(jsonStr)
+                }
+            } else if (it.type == "image") {
+                Log.d(TAG, "image")
+                it?.url?.let{ url ->
+                    binding.webView.loadUrl(url)
+                    binding.textView.visibility = View.GONE
+                    binding.webView.visibility = View.VISIBLE
 
-                binding.webView.loadUrl(result?.url!!)
+                }
+            } else {
+                binding.textView.visibility = View.GONE
+                binding.webView.visibility = View.GONE
             }
         }
 
-        viewModel.getAllIds()
+        viewModel.objectIdsResponse.observe(this) {
+            getObject()
+        }
+
+        viewModel.getObjectIdsResponse()
+
+
+        binding.next.setOnClickListener {
+            viewModel.objectIdsResponse.value?.data?.size?.let {
+                if (viewModel.index+1 < it) {
+                    viewModel.index = viewModel.index + 1
+                    Log.d(TAG, "index = ${viewModel.index}")
+                } else {
+                    viewModel.index = 0
+                }
+            }
+
+            getObject()
+        }
 
     }
 
-    private fun getObjectById(id: Long) {
-        viewModel.getObjectById(id)
+    private fun getObject() {
+        viewModel.objectIdsResponse.value?.data?.get(viewModel.index)?.id?.let {
+            viewModel.getObjectById(it)
+        }
     }
+
 
     companion object {
         private const val TAG = "MainActivity"

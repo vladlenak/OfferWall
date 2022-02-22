@@ -4,29 +4,31 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.beust.klaxon.Klaxon
 import kotlinx.coroutines.launch
 import octopus.inc.offerwall.api.ApiService
-import octopus.inc.offerwall.api.model.MockableResponse
+import octopus.inc.offerwall.api.model.ObjectIdsResponse
 import octopus.inc.offerwall.api.RetrofitClient
-import octopus.inc.offerwall.api.model.WebViewResponse
+import octopus.inc.offerwall.api.model.ObjectResponse
 import java.lang.Exception
 
 private const val TAG = "MainViewModel"
 
 class MainViewModel : ViewModel() {
 
-    val allIds = MutableLiveData<MockableResponse>()
-    val currentObject = MutableLiveData<Any>()
+    var index: Int = 0
+
+    var objectIdsResponse = MutableLiveData<ObjectIdsResponse>()
+    val objectResponse = MutableLiveData<ObjectResponse>()
+
     private val api = RetrofitClient.getRetrofit(BASE_URL)?.create(ApiService::class.java)
 
-    fun getAllIds() {
+    fun getObjectIdsResponse() {
         viewModelScope.launch {
             try {
                 val res = api?.getAllIds()
                 res?.let {
                     if (it.isSuccessful) {
-                        allIds.value = it.body()
+                        objectIdsResponse.value = it.body()
                     }
                 }
             } catch (e: Exception) {
@@ -35,16 +37,17 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun getObjectById(id: Long) {
+    fun getObjectById(id: String) {
         viewModelScope.launch {
             try {
                 val res = api?.getObjectById(id)
 
-                res?.let {
+                res?.let { it ->
                     if (it.isSuccessful) {
                         val responseBody = it.body()
                         Log.d(TAG, "getObjectById: $responseBody")
-                        currentObject.value = it.body()
+                        objectResponse.value = it.body()
+
                     }
                 }
             } catch (e: Exception) {

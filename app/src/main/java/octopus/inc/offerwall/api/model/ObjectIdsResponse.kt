@@ -1,9 +1,9 @@
 package octopus.inc.offerwall.api.model
 
-data class MockableResponse (
+data class ObjectIdsResponse (
     val data: List<Data>
 )
 
 data class Data (
-    val id: Long
+    val id: String
 )
