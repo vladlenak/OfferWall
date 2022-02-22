@@ -11,15 +11,11 @@ import octopus.inc.offerwall.api.RetrofitClient
 import octopus.inc.offerwall.api.model.ObjectResponse
 import java.lang.Exception
 
-private const val TAG = "MainViewModel"
-
 class MainViewModel : ViewModel() {
 
     var index: Int = 0
-
     var objectIdsResponse = MutableLiveData<ObjectIdsResponse>()
     val objectResponse = MutableLiveData<ObjectResponse>()
-
     private val api = RetrofitClient.getRetrofit(BASE_URL)?.create(ApiService::class.java)
 
     fun getObjectIdsResponse() {
@@ -57,6 +53,7 @@ class MainViewModel : ViewModel() {
     }
 
     companion object {
+        private const val TAG = "MainViewModel"
         private const val BASE_URL = "https://demo3005513.mockable.io/api/v1/"
     }
 }

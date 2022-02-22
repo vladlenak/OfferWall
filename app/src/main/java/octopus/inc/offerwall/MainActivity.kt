@@ -1,10 +1,11 @@
 package octopus.inc.offerwall
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
 import octopus.inc.offerwall.databinding.ActivityMainBinding
 import octopus.inc.offerwall.viewmodel.MainViewModel
 
@@ -12,7 +13,6 @@ import octopus.inc.offerwall.viewmodel.MainViewModel
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
     private val viewModel: MainViewModel by lazy {
         ViewModelProvider(this)[MainViewModel::class.java]
     }
@@ -25,28 +25,31 @@ class MainActivity : AppCompatActivity() {
         viewModel.objectResponse.observe(this) {
             if (it.type == "text") {
                 Log.d(TAG, "text")
-                binding.webView.visibility = View.GONE
-                binding.textView.visibility = View.VISIBLE
                 binding.textView.text = it.message
+                binding.webView.visibility = View.GONE
+                binding.imageView.visibility = View.GONE
+                binding.textView.visibility = View.VISIBLE
+
             } else if (it.type == "webview") {
                 Log.d(TAG, "webview")
-                it?.url?.let{ url ->
+                it?.url?.let { url ->
                     binding.webView.loadUrl(url)
                     binding.textView.visibility = View.GONE
+                    binding.imageView.visibility = View.GONE
                     binding.webView.visibility = View.VISIBLE
-
                 }
             } else if (it.type == "image") {
                 Log.d(TAG, "image")
-                it?.url?.let{ url ->
-                    binding.webView.loadUrl(url)
+                it?.url?.let { url ->
+                    Glide.with(this).load(url).into(binding.imageView)
                     binding.textView.visibility = View.GONE
-                    binding.webView.visibility = View.VISIBLE
-
+                    binding.webView.visibility = View.GONE
+                    binding.imageView.visibility = View.VISIBLE
                 }
             } else {
                 binding.textView.visibility = View.GONE
                 binding.webView.visibility = View.GONE
+                binding.imageView.visibility = View.GONE
             }
         }
 
@@ -56,10 +59,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getObjectIdsResponse()
 
-
         binding.next.setOnClickListener {
             viewModel.objectIdsResponse.value?.data?.size?.let {
-                if (viewModel.index+1 < it) {
+                if (viewModel.index + 1 < it) {
                     viewModel.index = viewModel.index + 1
                     Log.d(TAG, "index = ${viewModel.index}")
                 } else {
@@ -77,7 +79,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.getObjectById(it)
         }
     }
-
 
     companion object {
         private const val TAG = "MainActivity"

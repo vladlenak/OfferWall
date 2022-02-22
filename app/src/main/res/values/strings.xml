@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">OfferWall</string>
     <string name="next">Далее</string>
+    <string name="image_view">Image View</string>
 </resources>
